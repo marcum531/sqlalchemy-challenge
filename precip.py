@@ -65,35 +65,66 @@ def stations():
 @app.route("/api/v1.0/tobs")
 def temperatures():
     session = Session(engine)
-    
-    results = session.query(Measurement.station, func.count(Measurement.station)).\
-    group_by(Measurement.station).\
-    order_by(func.count(Measurement.station).desc()).all()
-    
-    most_active = []
-    for r in results:
-        active_dict = {}
-        active_dict = r.
-        most_active.append(active_dict)
-    
-    temps = session.query(Measurement.station, Measurement.date, Measurement.tobs).\
-    filter(Measurement.station == most_active).\
+         
+    temps = session.query(Measurement.date, Measurement.tobs).\
     filter(Measurement.date >= "2016-08-22").\
     filter(Measurement.date <= "2017-08-23").\
     order_by(Measurement.date).all()
     
     session.close()
     
-    most_active_temps = []
+    temps_data = []
     for t in temps:
-        most_active_temps_dict = {}
-        most_active_temps_dict['date'] = t.date
-        most_active_temps_dict['tobs'] = t.tobs
-        most_active_temps.append(most_active_temps_dict)
+        temps_dict = {}
+        temps_dict['date'] = t.date
+        temps_dict['tobs'] = t.tobs
+        temps_data.append(temps_dict)
     
-    return jsonify(most_active_temps)
-   
+    return jsonify(temps_data)
 
+@app.route("/api/v1.0/<start>")
+def temp_per_date(start):
+    session = Session(engine)
+    
+    results = session.query(func.min(Measurement.tobs).label('min'),\
+    func.avg(Measurement.tobs).label('avg'), func.max(Measurement.tobs).label('max')).\
+    filter(Measurement.date >= start).all()
+    
+    session.close()
+    
+    temp_per_date_data = []
+    for r in results:
+        temp_per_date_dict = {}
+        temp_per_date_dict['Start Date'] = start
+        temp_per_date_dict['Min Temp'] = r.min
+        temp_per_date_dict['Avg Temp'] = r.avg
+        temp_per_date_dict['Max Temp'] = r.max
+        temp_per_date_data.append(temp_per_date_dict)
+        
+        return jsonify(temp_per_date_data)
+
+@app.route("/api/v1.0/<start>/<end>")
+def temp_start_end(start, end):
+    session.Session(engine)
+    
+    results = session.query(func.min(Measurement.tobs).label('min'),\
+    func.avg(Measurement.tobs).label('avg'), func.max(Measurement.tobs).label('max')).\
+    filter(Measurement.date >= start).\
+    filter(Measurement.date <= end).all()
+    
+    session.close()
+    
+    temp_start_end_data = []
+    for r in results:
+        temp_start_end_dict = {}
+        temp_start_end_dict['Start Date'] = start
+        temp_start_end_dict['Min Temp'] = r.min
+        temp_start_end_dict['Avg Temp'] = r.avg
+        temp_start_end_dict['Max Temp'] = r.max
+        temp_start_end_dict['End Date'] = end
+        temp_start_end_data.append(temp_start_end_dict)
+        
+        return jsonify(temp_start_end_data)
     
 
 if __name__ == '__main__':
